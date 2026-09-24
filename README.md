@@ -1,38 +1,44 @@
-AI Project Builder 🚀
+AI Project Builder & Nexora 🚀
 
-An AI-powered development platform designed to simplify the process of building and configuring complete software projects from a single workspace.
+An AI-powered development platform and privacy-first application system built with a modern web frontend and an Express.js backend.
 
-📌 Overview
+## 📌 Overview
 
-AI Project Builder helps developers create applications without manually handling every step of frontend setup, backend configuration, database creation, API integration, and local project execution.
+Nexora provides a complete development and application ecosystem:
+- **Frontend**: Clean interactive interface (`login.html`) with role-based routing.
+- **Backend Service (`backend/`)**: Express.js server providing user authentication (`/api/signup`, `/api/users/clear-all`), MongoDB Atlas integration with Mongoose, Bitcoin testnet explorer proxying, Nostr NIP-17 handshake discovery, and an AI Privacy Coach.
 
-Users can describe the application they want to build, and the AI assists with creating the project structure, configuring services, connecting the frontend with the backend, and preparing the project for development.
+## 📁 Repository Structure
 
-✨ Features
-🤖 AI-Powered Development – Generate and modify project files using natural language.
-🔗 Backend Integration – Connect projects with services such as Firebase, Supabase, Appwrite, and PostgreSQL.
-⚙️ Automatic Configuration – Reduce manual setup of backend configuration and project environment variables.
-🗄️ Database Setup – Assist with creating and configuring required database structures.
-🔌 API Integration – Simplify connecting APIs and backend services to the application.
-💻 Project Automation – Execute required development commands and install dependencies.
-🌐 Local Testing – Run the project locally and provide a development URL for testing.
-📁 Unified Workspace – Build and configure projects without constantly switching between multiple tools.
-🎯 Goal
+```
+nexora/
+├── backend/                  # Express.js backend service
+│   ├── src/
+│   │   ├── middleware/       # Zero-Knowledge Privacy Guard & error handlers
+│   │   ├── models/           # Mongoose models (User, Contact, HandshakeChannel, AuditRecord)
+│   │   ├── routes/           # REST routes (auth, ai, btc, nostr, crypto, scenario, db)
+│   │   ├── services/         # BIP47 derivation, Nostr tools, mempool proxy, AI coach, DB
+│   │   ├── public/           # Interactive test dashboard (http://localhost:5000)
+│   │   ├── config.js         # Configuration settings
+│   │   └── server.js         # Server entry point
+│   ├── tests/                # Automated test suite (16 tests)
+│   ├── .env.example          # Environment variables template
+│   ├── package.json          # Dependencies & npm scripts
+│   └── README.md             # Complete backend documentation
+├── login.html                # Frontend application interface
+└── README.md                 # Project documentation
+```
 
-The goal of this project is to make software development more accessible and efficient by automating repetitive setup and integration tasks while allowing developers to remain in one workspace.
+## 🚀 Getting Started with the Backend
 
-Instead of manually configuring multiple services and connecting everything together, developers can focus more on building the actual application.
+```bash
+cd backend
+npm install
+npm test
+npm start
+```
 
-🛠️ Planned Technology
+The backend server runs on `http://localhost:5000` with live API endpoints and an interactive test dashboard.
 
-The platform is designed to support modern web and application development technologies, with integrations for popular backend and database platforms.
-
-🚧 Status
-
-Currently in development.
-
-More AI capabilities, backend integrations, automation features, and development tools will be added as the project evolves.
-
-📄 License
-
+## 📄 License
 This project is currently under development. License details will be added later.

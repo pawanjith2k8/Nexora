@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silent Ledger — Privacy-First Bitcoin Payment Layer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0b0e;
+      --bg-card: #12151c;
+      --bg-card-hover: #171b24;
+      --border: #232936;
+      --accent: #f7931a; /* Bitcoin orange */
+      --accent-glow: rgba(247, 147, 26, 0.25);
+      --nostr-purple: #9d4edd;
+      --nostr-glow: rgba(157, 78, 221, 0.25);
+      --privacy-green: #10b981;
+      --danger-red: #ef4444;
+      --warning-amber: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      background: rgba(10, 11, 14, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), #ffaa3b);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+      font-size: 1.25rem;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .badge-btc { background: rgba(247,147,26,0.1); color: var(--accent); border-color: rgba(247,147,26,0.3); }
+    .badge-nostr { background: rgba(157,78,221,0.1); color: var(--nostr-purple); border-color: rgba(157,78,221,0.3); }
+    .badge-guard { background: rgba(16,185,129,0.1); color: var(--privacy-green); border-color: rgba(16,185,129,0.3); }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    .nav-tab {
+      padding: 0.75rem 1.25rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-tab:hover { color: var(--text-main); }
+    .nav-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover {
+      background: #ffa733;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .btn-nostr {
+      background: var(--nostr-purple);
+      color: #fff;
+    }
+    .btn-nostr:hover {
+      background: #b26bf2;
+      box-shadow: 0 0 15px var(--nostr-glow);
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger-red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+    .btn-secondary {
+      background: #1f2430;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: #272d3c; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 800px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .mono-box {
+      background: #07080b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #93c5fd;
+      word-break: break-all;
+      overflow-x: auto;
+      max-height: 300px;
+    }
+
+    /* Score gauge */
+    .score-container {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1rem 0;
+    }
+    .score-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid var(--accent);
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+    .score-circle.bad { border-color: var(--danger-red); color: var(--danger-red); }
+    .score-circle.clean { border-color: var(--privacy-green); color: var(--privacy-green); }
+    .score-circle span { font-size: 0.65rem; font-weight: 500; text-transform: uppercase; }
+
+    .flag-pill {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+    }
+    .flag-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--danger-red);
+      display: flex;
+      justify-content: space-between;
+    }
+    .flag-desc {
+      font-size: 0.8rem;
+      color: #d1d5db;
+      margin-top: 0.25rem;
+    }
+    .flag-risk {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.25rem;
+      font-style: italic;
+    }
+
+    /* Chat bubble */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 450px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    .chat-msg {
+      padding: 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    .chat-msg.coach {
+      background: #171c26;
+      border: 1px solid #2a3346;
+      align-self: flex-start;
+      width: 100%;
+    }
+    .chat-msg.coach h3 {
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+      color: var(--accent);
+    }
+    .chat-msg.coach ul, .chat-msg.coach ol {
+      margin-left: 1.25rem;
+      margin-top: 0.5rem;
+    }
+    .chat-msg.coach li { margin-bottom: 0.25rem; }
+    .chat-msg.user {
+      background: #1e293b;
+      border: 1px solid #334155;
+      align-self: flex-end;
+      color: #f1f5f9;
+      max-width: 80%;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .chat-input {
+      flex: 1;
+      background: #07080b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+    .chat-input:focus { outline: none; border-color: var(--accent); }
+
+    .step-card {
+      position: relative;
+      padding-left: 2rem;
+      margin-bottom: 1.5rem;
+      border-left: 2px solid var(--border);
+    }
+    .step-dot {
+      position: absolute;
+      left: -9px;
+      top: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    .step-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .step-actor {
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .step-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">₿</div>
+      <div>
+        <div class="brand-title">Silent Ledger</div>
+        <div class="brand-subtitle">Privacy-First Bitcoin Layer & AI Coach</div>
+      </div>
+    </div>
+    <div class="badge-bar">
+      <div class="badge badge-btc">⚡ Bitcoin Testnet</div>
+      <div class="badge badge-nostr">🟣 Nostr Discovery</div>
+      <div class="badge badge-guard">🛡️ Zero-Knowledge Guard</div>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('tab-handshake')">🤝 1. Alice & Bob Handshake</button>
+      <button class="nav-tab" onclick="switchTab('tab-dashboard')">📊 2. Privacy Dashboard & Leaks</button>
+      <button class="nav-tab" onclick="switchTab('tab-coach')">🧠 3. AI Privacy Coach</button>
+      <button class="nav-tab" onclick="switchTab('tab-nostr')">⚡ 4. Nostr Relays & Testnet</button>
+      <button class="nav-tab" onclick="switchTab('tab-guard')">🔒 5. Zero-Knowledge Proof</button>
+      <button class="nav-tab" onclick="switchTab('tab-db')">🍃 6. MongoDB Atlas</button>
+    </nav>
+
+    <!-- TAB 1: ALICE & BOB HANDSHAKE -->
+    <div id="tab-handshake" class="tab-content active">
+      <div class="card">
+        <div class="card-title">
+          <span>End-to-End Private Payment Handshake</span>
+          <button class="btn btn-primary" onclick="loadAliceBobFlow()">▶ Run Live Simulation</button>
+        </div>
+        <div class="card-subtitle">
+          Alice publishes a BIP47 Payment Code to Nostr. Bob discovers her npub and sends an encrypted NIP-17 DM. Both sides derive identical one-time addresses via local ECDH without on-chain notification transactions.
+        </div>
+
+        <div id="flow-container">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            Click "Run Live Simulation" to fetch verified identities and cryptographic proof.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: PRIVACY DASHBOARD & SIMULATED LEAKS -->
+    <div id="tab-dashboard" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>Local Privacy Audit Simulation</span>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-danger" onclick="loadBadWallet()">🚨 Load Vulnerable Wallet</button>
+            <button class="btn btn-primary" onclick="loadCleanWallet()">🛡️ Load Clean Silent Ledger</button>
+          </div>
+        </div>
+        <div class="card-subtitle">
+          Evaluates address reuse, dust attacks, script-type mixing, and common-input-ownership (CIOH) risk.
+        </div>
+
+        <div id="audit-results" style="display: none;">
+          <div class="grid-2">
+            <div>
+              <div class="score-container">
+                <div id="score-circle" class="score-circle">
+                  <div id="score-num">28</div>
+                  <span id="score-label">Score</span>
+                </div>
+                <div>
+                  <h3 id="grade-title" style="font-size: 1.25rem;">CRITICAL LEAK</h3>
+                  <div id="audit-meta" style="color: var(--text-muted); font-size: 0.85rem;"></div>
+                  <button class="btn btn-primary" style="margin-top: 0.75rem;" onclick="sendToCoachFromDashboard()">
+                    🧠 Send Flags to AI Coach
+                  </button>
+                </div>
+              </div>
+
+              <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.95rem;">Flagged Privacy Violations:</h4>
+              <div id="flags-list"></div>
+            </div>
+
+            <div>
+              <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem;">Wallet UTXOs in Scope:</h4>
+              <div id="utxo-list" class="mono-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AI PRIVACY COACH -->
+    <div id="tab-coach" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>🧠 AI Privacy Coach Panel</span>
+          <span class="badge badge-btc">Tutor Persona</span>
+        </div>
+        <div class="card-subtitle">
+          The AI Coach reads locally computed scores and flags (never raw keys or xpubs) and explains how to fix your on-chain habits like an interactive tutor.
+        </div>
+
+        <div class="chat-container" id="chat-box">
+          <div class="chat-msg coach">
+            Hello! I am your <strong>Silent Ledger Privacy Coach</strong>. Load an audit in the Privacy Dashboard or ask me anything about Bitcoin deanonymization, dust attacks, address reuse, or how Nostr NIP-17 handshakes work!
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question (e.g. 'Why is address reuse bad?' or 'Explain dust attack')..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: NOSTR RELAYS & TESTNET -->
+    <div id="tab-nostr" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>Nostr Relays Status</span>
+            <button class="btn btn-nostr" onclick="checkRelays()">Ping Relays</button>
+          </div>
+          <div class="card-subtitle">Default relays for publishing kind 30078 payment codes and NIP-17 handshakes.</div>
+          <div id="relay-list" class="mono-box">Click "Ping Relays" to test live connectivity.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>Bitcoin Testnet Explorer</span>
+            <button class="btn btn-secondary" onclick="fetchFees()">Get Fees</button>
+          </div>
+          <div class="card-subtitle">Recommended fee rates via Mempool.space Testnet API proxy.</div>
+          <div id="fees-box" class="mono-box">Click "Get Fees" to query mempool fees.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: ZERO-KNOWLEDGE PROOF -->
+    <div id="tab-guard" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>Zero-Knowledge Privacy Guard Verification</span>
+          <span class="badge badge-guard">Active Firewall</span>
+        </div>
+        <div class="card-subtitle">
+          "No backend server should ever receive raw wallet data, xpubs, or private keys." Test our server middleware blocking accidental leaks.
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Click below to simulate a misconfigured client attempting to send an xpub or private key to the AI Coach API:
+            </p>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <button class="btn btn-danger" onclick="testLeakAttempt('xpub')">⚠️ Test Sending xpub to /api/ai/coach/analyze</button>
+              <button class="btn btn-danger" onclick="testLeakAttempt('wif')">⚠️ Test Sending WIF Private Key to /api/ai/coach/analyze</button>
+              <button class="btn btn-danger" onclick="testLeakAttempt('seed')">⚠️ Test Sending Seed Phrase to /api/ai/coach/analyze</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="card-title" style="font-size: 0.9rem;">Server Response:</div>
+            <div id="guard-response" class="mono-box" style="color: #4ade80;">No tests run yet. Firewall is standing guard.</div>
+          </div>
+        </div>
+    <!-- TAB 6: MONGODB ATLAS -->
+    <div id="tab-db" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span>MongoDB Atlas Service & Persistence</span>
+          <button class="btn btn-primary" onclick="checkDbStatus()">🔄 Check DB Status</button>
+        </div>
+        <div class="card-subtitle">
+          Persists discovered Nostr contacts, NIP-17 handshake channel address sequences, and zero-knowledge privacy audit history.
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Connection State</h4>
+            <div id="db-status-box" class="mono-box" style="margin-bottom: 1rem;">
+              Click "Check DB Status" to verify connection.
+            </div>
+
+            <div style="background: rgba(247,147,26,0.08); border: 1px solid rgba(247,147,26,0.3); border-radius: 8px; padding: 1rem; font-size: 0.825rem;">
+              <strong>ℹ️ Cluster Details:</strong><br>
+              • Cluster: <code>silentledger.gbiwzyu.mongodb.net</code><br>
+              • Database: <code>silentledger</code><br>
+              • Models: <code>Contact</code>, <code>HandshakeChannel</code>, <code>AuditRecord</code><br>
+              • Note: If URI has <code>&lt;db_username&gt;</code>, set <code>DB_USERNAME</code> in <code>.env</code>.
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+              <h4 style="font-size: 0.95rem;">Stored Contacts & Audits</h4>
+              <div style="display:flex; gap:0.5rem;">
+                <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.4rem 0.8rem;" onclick="loadDbContacts()">Contacts</button>
+                <button class="btn btn-secondary" style="font-size:0.75rem; padding:0.4rem 0.8rem;" onclick="loadDbAudits()">Audits</button>
+              </div>
+            </div>
+            <div id="db-data-box" class="mono-box">
+              Select "Contacts" or "Audits" to view records.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentAuditData = null;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    async function loadAliceBobFlow() {
+      const container = document.getElementById('flow-container');
+      container.innerHTML = '<div style="text-align:center; padding:1.5rem;">Generating cryptographic proofs and querying endpoints...</div>';
+      try {
+        const res = await fetch('/api/scenarios/alice-bob-flow');
+        const json = await res.json();
+        
+        let html = '';
+        json.steps.forEach(step => {
+          html += `
+            <div class="step-card">
+              <div class="step-dot"></div>
+              <div class="step-actor">${step.actor}</div>
+              <div class="step-title">Step ${step.step}: ${step.title}</div>
+              <div class="step-desc">${step.action}</div>
+              <pre class="mono-box">${JSON.stringify(step.data, null, 2)}</pre>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<div style="color:var(--danger-red)">Error loading flow: ${err.message}</div>`;
+      }
+    }
+
+    async function loadBadWallet() {
+      const res = await fetch('/api/scenarios/simulated-wallet-bad');
+      const data = await res.json();
+      currentAuditData = data.audit;
+      renderAudit(data, true);
+    }
+
+    async function loadCleanWallet() {
+      const res = await fetch('/api/scenarios/simulated-wallet-clean');
+      const data = await res.json();
+      currentAuditData = data.audit;
+      renderAudit(data, false);
+    }
+
+    function renderAudit(data, isBad) {
+      document.getElementById('audit-results').style.display = 'block';
+      const circle = document.getElementById('score-circle');
+      circle.className = `score-circle ${isBad ? 'bad' : 'clean'}`;
+      document.getElementById('score-num').innerText = data.audit.score;
+      document.getElementById('grade-title').innerText = data.audit.grade;
+      document.getElementById('audit-meta').innerText = `${data.utxos.length} UTXOs | Total: ${data.totalBalanceSats.toLocaleString()} sats`;
+
+      const flagsList = document.getElementById('flags-list');
+      if (data.audit.flags.length === 0) {
+        flagsList.innerHTML = '<div style="color:var(--privacy-green); font-weight:600;">✨ Zero privacy leaks detected! Pristine coin isolation.</div>';
+      } else {
+        flagsList.innerHTML = data.audit.flags.map(f => `
+          <div class="flag-pill">
+            <div class="flag-title">
+              <span>⚠️ ${f.title}</span>
+              <span>-${f.penalty} pts</span>
+            </div>
+            <div class="flag-desc">${f.details}</div>
+            <div class="flag-risk">Risk: ${f.chainAnalysisRisk}</div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('utxo-list').innerText = JSON.stringify(data.utxos, null, 2);
+    }
+
+    async function sendToCoachFromDashboard() {
+      if (!currentAuditData) return;
+      switchTab('tab-coach');
+      document.querySelectorAll('.nav-tab')[2].classList.add('active');
+      document.querySelectorAll('.nav-tab')[1].classList.remove('active');
+
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="chat-msg user">Coach, please analyze my wallet's privacy score of ${currentAuditData.score}/100 and explain these leaks.</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const res = await fetch('/api/ai/coach/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          score: currentAuditData.score,
+          grade: currentAuditData.grade,
+          flags: currentAuditData.flags,
+          summary: currentAuditData.summary
+        })
+      });
+
+      const json = await res.json();
+      const reply = json.data?.analysis || 'Could not analyze';
+      renderCoachReply(reply);
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      input.value = '';
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="chat-msg user">${msg}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const res = await fetch('/api/ai/coach/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: msg,
+          score: currentAuditData ? currentAuditData.score : 65,
+          flags: currentAuditData ? currentAuditData.flags : []
+        })
+      });
+
+      const json = await res.json();
+      renderCoachReply(json.data?.reply || 'No response');
+    }
+
+    function renderCoachReply(markdownText) {
+      const chatBox = document.getElementById('chat-box');
+      // Simple format converter for markdown bold/headers
+      let formatted = markdownText
+        .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+
+      chatBox.innerHTML += `<div class="chat-msg coach">${formatted}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function checkRelays() {
+      const box = document.getElementById('relay-list');
+      box.innerText = 'Pinging public relays...';
+      try {
+        const res = await fetch('/api/nostr/relays');
+        const json = await res.json();
+        box.innerText = JSON.stringify(json.health, null, 2);
+      } catch (e) {
+        box.innerText = 'Error: ' + e.message;
+      }
+    }
+
+    async function fetchFees() {
+      const box = document.getElementById('fees-box');
+      box.innerText = 'Querying mempool testnet fees...';
+      try {
+        const res = await fetch('/api/btc/fees');
+        const json = await res.json();
+        box.innerText = JSON.stringify(json.fees, null, 2);
+      } catch (e) {
+        box.innerText = 'Error: ' + e.message;
+      }
+    }
+
+    async function testLeakAttempt(type) {
+      const resBox = document.getElementById('guard-response');
+      resBox.style.color = '#ef4444';
+      resBox.innerText = 'Sending illegal payload to server...';
+
+      let payload = {};
+      if (type === 'xpub') {
+        payload = {
+          score: 80,
+          leakedXpub: 'tpubD6NzVbkrYhZ4XgiPtUmZFY4kQZ3Fv1k8YVq5jXWzK4v8G9k2R4j5L6m7N8P1q2w3e4r5t6y7u8i9o0'
+        };
+      } else if (type === 'wif') {
+        payload = {
+          score: 80,
+          leakedWif: 'cT1k8YVq5jXWzK4v8G9k2R4j5L6m7N8P1q2w3e4r5t6y7u8i9o0p'
+        };
+      } else {
+        payload = {
+          score: 80,
+          leakedMnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+        };
+      }
+
+      try {
+        const res = await fetch('/api/ai/coach/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        resBox.innerText = `HTTP ${res.status} BLOCKED:\n` + JSON.stringify(json, null, 2);
+      } catch (e) {
+        resBox.innerText = 'Request error: ' + e.message;
+      }
+    }
+
+    async function checkDbStatus() {
+      const box = document.getElementById('db-status-box');
+      box.innerText = 'Checking MongoDB status...';
+      try {
+        const res = await fetch('/api/db/status');
+        const json = await res.json();
+        box.innerText = JSON.stringify(json, null, 2);
+      } catch (err) {
+        box.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    async function loadDbContacts() {
+      const box = document.getElementById('db-data-box');
+      box.innerText = 'Fetching contacts from MongoDB...';
+      try {
+        const res = await fetch('/api/db/contacts');
+        const json = await res.json();
+        box.innerText = JSON.stringify(json, null, 2);
+      } catch (err) {
+        box.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    async function loadDbAudits() {
+      const box = document.getElementById('db-data-box');
+      box.innerText = 'Fetching audit history from MongoDB...';
+      try {
+        const res = await fetch('/api/db/audits');
+        const json = await res.json();
+        box.innerText = JSON.stringify(json, null, 2);
+      } catch (err) {
+        box.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    // Auto-load bad wallet by default on load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadBadWallet();
+      loadAliceBobFlow();
+      checkDbStatus();
+    });
+  </script>
+</body>
+</html>
