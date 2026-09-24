@@ -1,17 +1,17 @@
-AI Project Builder & Nexora 🚀
+AI Project Builder & SilentLedger 🚀
 
 An AI-powered development platform and privacy-first application system built with a modern web frontend and an Express.js backend.
 
 ## 📌 Overview
 
-Nexora provides a complete development and application ecosystem:
+SilentLedger provides a complete development and application ecosystem:
 - **Frontend**: Clean interactive interface (`login.html`) with role-based routing.
 - **Backend Service (`backend/`)**: Express.js server providing user authentication (`/api/signup`, `/api/users/clear-all`), MongoDB Atlas integration with Mongoose, Bitcoin testnet explorer proxying, Nostr NIP-17 handshake discovery, and an AI Privacy Coach.
 
 ## 📁 Repository Structure
 
 ```
-nexora/
+SilentLedger/
 ├── backend/                  # Express.js backend service
 │   ├── src/
 │   │   ├── middleware/       # Zero-Knowledge Privacy Guard & error handlers
