@@ -147,4 +147,64 @@ router.delete('/users/clear-all', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/login
+ * Authenticate existing user with email and password from MongoDB.
+ */
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'ValidationError',
+        message: 'Both email and password are required.'
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    let user = null;
+    if (isDbConnected()) {
+      user = await User.findOne({ email: normalizedEmail });
+    } else {
+      user = memoryUsers.get(normalizedEmail);
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'InvalidCredentials',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        error: 'InvalidCredentials',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful!',
+      user: {
+        id: user._id || user.id,
+        email: user.email
+      }
+    });
+  } catch (err) {
+    console.error('[Login Error]:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'ServerError',
+      message: 'Login failed: ' + err.message
+    });
+  }
+});
+
 module.exports = router;
