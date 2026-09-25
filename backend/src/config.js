@@ -23,6 +23,6 @@ module.exports = {
   BIP47_IDENTIFIER: 'silent-ledger/bip47',
 
   // MongoDB Atlas Database
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://<db_username>:5iuF49aNpgdj5VzC@silentledger.gbiwzyu.mongodb.net/silentledger?retryWrites=true&w=majority&appName=silentledger',
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://<db_username>:<db_password>@silentledger.gbiwzyu.mongodb.net/silentledger?retryWrites=true&w=majority&appName=silentledger',
   DB_USERNAME: process.env.DB_USERNAME || ''
 };

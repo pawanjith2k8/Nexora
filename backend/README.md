@@ -29,9 +29,9 @@ npm install
 ### 2. Configure Environment
 Copy `.env.example` to `.env` (already pre-configured with testnet defaults):
 ```bash
-PORT=4000
+PORT=5000
 MEMPOOL_API_BASE=https://mempool.space/testnet/api
-NOSTR_RELAYS=wss://nos.lol,wss://relay.primal.net,wss://relay.damus.io
+NOSTR_RELAYS=wss://relay.damus.io,wss://nos.lol,wss://relay.primal.net,wss://relay.snort.social
 SILENT_LEDGER_NOSTR_KIND=30078
 # Optional: GEMINI_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY
 # (The backend has a built-in expert Bitcoin privacy tutor engine that works with 0 API keys!)
@@ -41,7 +41,7 @@ SILENT_LEDGER_NOSTR_KIND=30078
 ```bash
 npm test
 ```
-All 11 unit and integration tests will verify BIP47 encoding, ECDH address parity, the Zero-Knowledge Privacy Guard, simulated demo scenarios, and AI coach responses.
+All 16 unit and integration tests verify BIP47 encoding, ECDH address parity, the Zero-Knowledge Privacy Guard, simulated demo scenarios, AI coach responses, and auth flows.
 
 ### 4. Start the Express Server
 ```bash
@@ -50,13 +50,13 @@ npm start
 npm run dev
 ```
 
-Server runs on: **`http://localhost:4000`**
+Server runs on: **`http://localhost:5000`** (frontend on `http://localhost:3000`)
 
 ---
 
 ## 🌐 Interactive Web Demo & Test Dashboard
 
-Opening `http://localhost:4000` in your browser launches the built-in **Silent Ledger Test Harness**:
+Opening `http://localhost:5000` in your browser launches the built-in **Silent Ledger Test Harness**:
 1. **Alice & Bob Handshake Simulation**: Real-time ECDH derivation showing Alice & Bob deriving identical one-time addresses #0..#4 with 100% cryptographic parity.
 2. **Privacy Dashboard & Leak Simulator**:
    - 🚨 *Vulnerable Wallet Demo*: 4 on-chain mistakes (Address reuse, 546-sat dust attack, script-type mixing, and CIOH co-spend risk) -> Score: 20/100.

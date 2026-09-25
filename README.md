@@ -5,13 +5,19 @@ An AI-powered development platform and privacy-first application system built wi
 ## 📌 Overview
 
 SilentLedger provides a complete development and application ecosystem:
-- **Frontend**: Clean interactive interface (`login.html`) with role-based routing.
+- **Frontend (`frontend/`)**: Next.js 16 + React 19 + TypeScript + Tailwind — App Router with Dashboard, Identity, Payment (client-side BIP47 ECDH), Privacy (client-side auditor), AI Coach (sanitized audit), Activity (testnet history), Settings.
 - **Backend Service (`backend/`)**: Express.js server providing user authentication (`/api/signup`, `/api/users/clear-all`), MongoDB Atlas integration with Mongoose, Bitcoin testnet explorer proxying, Nostr NIP-17 handshake discovery, and an AI Privacy Coach.
 
 ## 📁 Repository Structure
 
 ```
 SilentLedger/
+├── frontend/                 # Next.js 16 frontend (App Router)
+│   ├── app/                  # Home, Dashboard, Identity, Payment, Privacy, Coach, Activity, Settings
+│   ├── components/           # AppShell, Header, Nav, Toast
+│   ├── lib/                  # api.ts, types.ts, bip47Client.ts, privacyAuditor.ts
+│   ├── .env.local            # NEXT_PUBLIC_API_URL=http://localhost:5000
+│   └── package.json
 ├── backend/                  # Express.js backend service
 │   ├── src/
 │   │   ├── middleware/       # Zero-Knowledge Privacy Guard & error handlers
@@ -25,7 +31,6 @@ SilentLedger/
 │   ├── .env.example          # Environment variables template
 │   ├── package.json          # Dependencies & npm scripts
 │   └── README.md             # Complete backend documentation
-├── login.html                # Frontend application interface
 └── README.md                 # Project documentation
 ```
 
@@ -38,7 +43,7 @@ npm test
 npm start
 ```
 
-The backend server runs on `http://localhost:5000` with live API endpoints and an interactive test dashboard.
+The backend server runs on `http://localhost:5000` (frontend on `http://localhost:3000`) with live API endpoints. Bitcoin Testnet only; privacy analysis stays client-side; AI receives sanitized audit only.
 
 ## 📄 License
 This project is currently under development. License details will be added later.
